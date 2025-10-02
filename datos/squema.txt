@@ -1,0 +1,101 @@
+// Sales schema
+
+Table customers {
+  customer_id integer [primary key]
+  first_name varchar
+  last_name varchar
+  phone varchar
+  email varchar
+  street varchar
+  city varchar
+  state varchar
+  zip_code varchar
+}
+
+Table staffs {
+  staff_id integer [primary key]
+  first_name varchar
+  last_name varchar
+  email varchar
+  phone varchar
+  active boolean
+  store_id integer
+  manager_id integer
+}
+
+Table stores {
+  store_id integer [primary key]
+  store_name varchar
+  phone varchar
+  email varchar
+  street varchar
+  city varchar
+  state varchar
+  zip_code varchar
+}
+
+Table orders {
+  order_id integer [primary key]
+  customer_id integer
+  order_status varchar
+  order_date timestamp
+  required_date timestamp
+  shipped_date timestamp
+  store_id integer
+  staff_id integer
+}
+
+Table order_items {
+  order_id integer [primary key]
+  item_id integer [primary key]
+  product_id integer
+  quantity integer
+  list_price decimal
+  discount decimal
+}
+
+// Production schema
+
+Table categories {
+  category_id integer [primary key]
+  category_name varchar
+}
+
+Table products {
+  product_id integer [primary key]
+  product_name varchar
+  brand_id integer
+  category_id integer
+  model_year integer
+  list_price decimal
+}
+
+Table stocks {
+  store_id integer [primary key]
+  product_id integer [primary key]
+  quantity integer
+}
+
+Table brands {
+  brand_id integer [primary key]
+  brand_name varchar
+}
+
+// =========================
+// Relaciones (Refs)
+// =========================
+
+// Sales
+Ref: orders.customer_id > customers.customer_id
+Ref: orders.store_id > stores.store_id
+Ref: orders.staff_id > staffs.staff_id
+Ref: order_items.order_id > orders.order_id
+Ref: order_items.product_id > products.product_id
+Ref: staffs.store_id > stores.store_id
+Ref: staffs.manager_id > staffs.staff_id
+
+// Production
+Ref: products.category_id > categories.category_id
+Ref: products.brand_id > brands.brand_id
+Ref: stocks.store_id > stores.store_id
+Ref: stocks.product_id > products.product_id

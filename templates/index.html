@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL con IA - Con Diagrama</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --background: oklch(0.8914 0 0);
+          --foreground: oklch(0.2393 0 0);
+          --card: oklch(0.95 0 0);
+          --card-foreground: oklch(0.2393 0 0);
+          --primary: oklch(0.5016 0.1887 27.4816);
+          --primary-foreground: oklch(1 0 0);
+          --secondary: oklch(0.4955 0.0896 126.1858);
+          --secondary-foreground: oklch(1 0 0);
+          --accent: oklch(0.588 0.0993 245.7394);
+          --accent-foreground: oklch(1 0 0);
+          --destructive: oklch(0.7076 0.1975 46.4558);
+          --destructive-foreground: oklch(0 0 0);
+          --border: oklch(0.4313 0 0);
+          --input: oklch(0.4313 0 0);
+          --font-sans: "Oxanium", sans-serif;
+          --font-mono: "Source Code Pro", monospace;
+          --radius: 0px;
+          --shadow-sm: 0px 2px 4px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px -1px hsl(0 0% 0% / 0.40);
+          --shadow-lg: 0px 2px 4px 0px hsl(0 0% 0% / 0.40), 0px 4px 6px -1px hsl(0 0% 0% / 0.40);
+        }
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 2rem;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: var(--card);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+        h1 { font-size: 2.5rem; color: var(--primary); text-align: center; margin-bottom: 0.5rem; }
+        h2 { color: var(--primary); margin-top: 2rem; }
+        p { text-align: center; color: black; margin-bottom: 2rem; }
+
+        .file-input-label {
+            border: 2px dashed var(--border);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            display: block;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s;
+        }
+        .file-input-label:hover { border-color: var(--primary); }
+        #fileInput { display: none; }
+        #file-names { color: var(--accent); font-family: var(--font-mono); margin-top: 1rem; }
+        
+        .uniform-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: opacity 0.3s;
+            width: 100%;
+        }
+        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); }
+        .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); }
+        .btn-destructive { background-color: var(--destructive); color: var(--destructive-foreground); }
+        .btn:hover { opacity: 0.9; }
+        
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--input);
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            background-color: var(--background);
+            color: var(--foreground);
+            box-sizing: border-box;
+        }
+        pre { 
+            font-family: var(--font-mono); 
+            font-size: 0.9rem; 
+            background-color: var(--card); 
+            padding: 1rem; 
+            overflow-x: auto; 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius); 
+        }
+        table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+        th, td { border: 1px solid var(--border); padding: 0.5rem; text-align: left; }
+        th { background-color: var(--primary); color: var(--primary-foreground); }
+        
+        #diagramContainer {
+            background-color: white;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            margin-top: 1rem;
+            display: none;
+        }
+        #diagramContainer.visible {
+            display: block;
+        }
+        #mermaidDiagram svg {
+            max-width: 100%;
+            height: auto;
+            transform: scale(0.85);
+            transform-origin: top left;
+        }
+        
+        /* Modal para ejemplo */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--card);
+            padding: 2rem;
+            border: 2px solid var(--border);
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--foreground);
+        }
+        .modal-close:hover {
+            color: var(--destructive);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SQLN'T</h1>
+        <p>Genera y ejecuta consultas SQL en tus archivos CSV usando inteligencia artificial.</p>
+
+        <!-- Upload -->
+        <label class="file-input-label" for="fileInput">
+            Selecciona tus archivos CSV y/o esquema .txt
+            <br>
+            <button class="btn btn-secondary" id="exampleBtn" style="margin-top: 1rem; padding: 0.4rem 0.8rem; font-size: 0.85rem; width: auto;">Ver Ejemplo de Schema</button>
+        </label>
+        <input type="file" id="fileInput" multiple />
+        <div id="file-names">No hay archivos seleccionados.</div>
+        
+        <div class="uniform-container">
+            <button class="btn btn-primary" id="uploadBtn">Subir y Procesar</button>
+            
+            <textarea id="promptInput" rows="3" placeholder="Describe tu consulta en lenguaje natural..."></textarea>
+            
+            <button class="btn btn-primary" id="queryBtn">Generar y Ejecutar SQL</button>
+            
+            <button class="btn btn-destructive" id="clearBtn">Limpiar Todo</button>
+        </div>
+
+        <!-- Results -->
+        <h2>Consulta SQL Generada</h2>
+        <pre id="sqlOutput"></pre>
+        <h2>Previsualización de Resultados</h2>
+        <div id="previewOutput"></div>
+        <div id="statusDisplay"></div>
+
+        <!-- Diagram Section (at the end) -->
+        <div style="margin-top: 3rem;">
+            <button class="btn btn-secondary" id="diagramBtn">Ver Diagrama del Schema</button>
+            <div id="diagramContainer">
+                <h2>Diagrama del Schema</h2>
+                <div id="mermaidDiagram"></div>
+            </div>
+        </div>
+        
+        <!-- Modal para ejemplo de schema -->
+        <div id="exampleModal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" id="closeModal">&times;</button>
+                <h2>Ejemplo de Schema DBML</h2>
+                <p>Crea un archivo <code>.txt</code> con este formato:</p>
+                <pre style="font-size: 0.85rem;">// Definir tablas
+Table clientes {
+  cliente_id integer [primary key]
+  nombre varchar
+  email varchar
+  telefono varchar
+}
+
+Table pedidos {
+  pedido_id integer [primary key]
+  cliente_id integer
+  fecha timestamp
+  total decimal
+}
+
+// Definir relaciones
+Ref: pedidos.cliente_id > clientes.cliente_id
+</pre>
+                <h3>Guía rápida:</h3>
+                <ul style="text-align: left; line-height: 1.8; font-size: 0.9rem;">
+                    <li><strong>Tablas:</strong> <code>Table nombre { ... }</code></li>
+                    <li><strong>Columnas:</strong> <code>nombre_columna tipo [opciones]</code></li>
+                    <li><strong>Primary Key:</strong> <code>[primary key]</code></li>
+                    <li><strong>Relaciones:</strong> <code>Ref: tabla1.col > tabla2.col</code></li>
+                    <li><strong>Tipos comunes:</strong> integer, varchar, decimal, timestamp, boolean</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose',
+            er: {
+                fontSize: 11,
+                useMaxWidth: true,
+                layoutDirection: 'LR',
+                minEntityWidth: 80,
+                minEntityHeight: 40,
+                entityPadding: 10,
+                stroke: '#333333',
+                fill: '#efefef'
+            },
+            flowchart: {
+                nodeSpacing: 30,
+                rankSpacing: 30
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('fileInput');
+            const fileNames = document.getElementById('file-names');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const diagramBtn = document.getElementById('diagramBtn');
+            const exampleBtn = document.getElementById('exampleBtn');
+            const exampleModal = document.getElementById('exampleModal');
+            const closeModal = document.getElementById('closeModal');
+            const promptInput = document.getElementById('promptInput');
+            const queryBtn = document.getElementById('queryBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const sqlOutput = document.getElementById('sqlOutput');
+            const previewOutput = document.getElementById('previewOutput');
+            const statusDisplay = document.getElementById('statusDisplay');
+            const diagramContainer = document.getElementById('diagramContainer');
+            const mermaidDiagram = document.getElementById('mermaidDiagram');
+
+            // --- Show example modal ---
+            exampleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                exampleModal.classList.add('visible');
+            });
+
+            closeModal.addEventListener('click', () => {
+                exampleModal.classList.remove('visible');
+            });
+
+            exampleModal.addEventListener('click', (e) => {
+                if (e.target === exampleModal) {
+                    exampleModal.classList.remove('visible');
+                }
+            });
+
+            // --- Render table ---
+            function renderPreview(previewJSON) {
+                try {
+                    const data = JSON.parse(previewJSON);
+                    if (!Array.isArray(data) || data.length === 0) {
+                        previewOutput.innerHTML = "No hay resultados para mostrar.";
+                        return;
+                    }
+
+                    let table = "<table><thead><tr>";
+                    Object.keys(data[0]).forEach(key => table += `<th>${key}</th>`);
+                    table += "</tr></thead><tbody>";
+                    data.forEach(row => {
+                        table += "<tr>";
+                        Object.values(row).forEach(value => table += `<td>${value}</td>`);
+                        table += "</tr>";
+                    });
+                    table += "</tbody></table>";
+                    previewOutput.innerHTML = table;
+                } catch(e) {
+                    previewOutput.textContent = `⚠️ Error mostrando resultados: ${e.message}`;
+                }
+            }
+
+            // --- File handling ---
+            fileInput.addEventListener('change', () => {
+                fileNames.textContent = fileInput.files.length > 0
+                    ? Array.from(fileInput.files).map(f => f.name).join(', ')
+                    : 'No hay archivos seleccionados.';
+            });
+
+            uploadBtn.addEventListener('click', async () => {
+                const formData = new FormData();
+                for(const f of fileInput.files) formData.append('file', f);
+                const res = await fetch('/upload', { method:'POST', body: formData });
+                const data = await res.json();
+                statusDisplay.textContent = data.result;
+            });
+
+            // --- Generate Diagram ---
+            diagramBtn.addEventListener('click', async () => {
+                try {
+                    const res = await fetch('/generate-diagram', { method: 'POST' });
+                    const data = await res.json();
+                    
+                    if (data.diagram) {
+                        mermaidDiagram.innerHTML = '';
+                        const graphDefinition = data.diagram;
+                        const { svg } = await mermaid.render('mermaidGraph', graphDefinition);
+                        mermaidDiagram.innerHTML = svg;
+                        diagramContainer.classList.add('visible');
+                        diagramContainer.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert(data.result || '⚠️ No se pudo generar el diagrama');
+                    }
+                } catch(e) {
+                    alert(`⚠️ Error generando diagrama: ${e.message}`);
+                }
+            });
+
+            queryBtn.addEventListener('click', async () => {
+                const prompt = promptInput.value.trim();
+                if(!prompt) return alert('⚠️ Escribe una consulta.');
+                
+                sqlOutput.textContent = "Generando SQL...";
+                previewOutput.innerHTML = "Cargando resultados...";
+                
+                try {
+                    const res = await fetch('/generate-sql', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify({prompt})
+                    });
+                    const data = await res.json();
+                    sqlOutput.textContent = data.sql || data.result;
+                    if(data.preview) renderPreview(data.preview);
+                    else previewOutput.textContent = data.result || "No hay resultados.";
+                } catch(e) {
+                    sqlOutput.textContent = `⚠️ Error al generar SQL: ${e.message}`;
+                    previewOutput.textContent = '';
+                }
+            });
+
+            clearBtn.addEventListener('click', async () => {
+                const res = await fetch('/clear', { method:'POST' });
+                const data = await res.json();
+                statusDisplay.textContent = data.result;
+                sqlOutput.textContent = '';
+                previewOutput.innerHTML = '';
+                fileNames.textContent = 'No hay archivos seleccionados.';
+                fileInput.value = '';
+                promptInput.value = '';
+                diagramContainer.classList.remove('visible');
+                mermaidDiagram.innerHTML = '';
+            });
+        });
+    </script>
+</body>
+</html>
